@@ -1,0 +1,45 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc", "import", "node", "vitest"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn"
+  },
+  "rules": {
+    "typescript/no-explicit-any": "warn",
+    "typescript/no-non-null-assertion": "off",
+    "no-console": [
+      "warn",
+      {
+        "allow": ["warn", "error"]
+      }
+    ],
+    "import/no-cycle": "error",
+    "unicorn/no-process-exit": "off",
+    "typescript/no-extraneous-class": [
+      "warn",
+      {
+        "allowWithDecorator": true
+      }
+    ],
+    "import/no-unassigned-import": [
+      "warn",
+      {
+        "allow": ["dotenv/config", "reflect-metadata"]
+      }
+    ],
+    "vitest/require-mock-type-parameters": "off"
+  },
+  "ignorePatterns": ["dist", "src/generated", "coverage"],
+  "env": {
+    "node": true
+  },
+  "overrides": [
+    {
+      "files": ["prisma/**", "test/**", "scripts/**"],
+      "rules": {
+        "no-console": "off"
+      }
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id              String    @id @default(uuid(7)) @db.Uuid
+  /// Always stored lower-cased and trimmed.
+  email           String    @unique
+  name            String?
+  avatarUrl       String?   @map("avatar_url")
+  /// Null for accounts that only sign in with Google.
+  passwordHash    String?   @map("password_hash")
+  googleId        String?   @unique @map("google_id")
+  /// Set when the user proves they own the email (verification link, password reset or Google).
+  emailVerifiedAt DateTime? @map("email_verified_at") @db.Timestamptz(3)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  refreshTokens RefreshToken[]
+  authTokens    AuthToken[]
+
+  @@map("users")
+}
+
+/// Opaque refresh tokens, stored as SHA-256 hashes and rotated on every use.
+/// All tokens issued from one login share a `familyId` (one "session"), so a
+/// replayed (stolen) token can revoke the whole session.
+model RefreshToken {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  tokenHash String    @unique @map("token_hash")
+  familyId  String    @map("family_id") @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz(3)
+  revokedAt DateTime? @map("revoked_at") @db.Timestamptz(3)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([familyId])
+  @@map("refresh_tokens")
+}
+
+enum AuthTokenType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+}
+
+/// One-time tokens sent by email (verification, password reset). Stored as SHA-256 hashes.
+model AuthToken {
+  id        String        @id @default(uuid(7)) @db.Uuid
+  type      AuthTokenType
+  tokenHash String        @unique @map("token_hash")
+  userId    String        @map("user_id") @db.Uuid
+  expiresAt DateTime      @map("expires_at") @db.Timestamptz(3)
+  usedAt    DateTime?     @map("used_at") @db.Timestamptz(3)
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
+  @@map("auth_tokens")
+}

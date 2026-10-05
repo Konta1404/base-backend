@@ -1,0 +1,17 @@
+.git
+.github
+.husky
+.claude
+node_modules
+dist
+coverage
+src/generated
+*.tsbuildinfo
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+.env
+.env.*
+!.env.example
+README.md
+.DS_Store
